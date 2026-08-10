@@ -109,14 +109,16 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  AppConstants.logoAsset,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
                     Icons.forest,
-                    size: 40,
+                    size: 44,
                     color: AppColors.primary,
                   ),
                 ),
@@ -495,8 +497,9 @@ class _FacultyRoleCardState extends State<_FacultyRoleCard> {
 
             // Register Link
             Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAxisAlignment.center,
                 children: [
                   const Text("Don't have a faculty account?", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   TextButton(
@@ -663,8 +666,9 @@ class _StudentRoleCardState extends State<_StudentRoleCard> {
 
             // Register Link
             Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAxisAlignment.center,
                 children: [
                   const Text("Don't have a student account?", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   TextButton(
