@@ -1,6 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // lib/features/auth/login/login_screen.dart
-// Professional login screen with Google Sign-In for trainees + faculty email login.
+// Modern, forest-inspired login screen with THREE distinct Role Rows:
+//   1. ADMIN (Email, Password, Login as Admin)
+//   2. FACULTY / TEACHER (Email, Password, Login as Faculty, Create Account)
+//   3. STUDENT (User ID / Email, Password, Login as Student, Create Account)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
@@ -52,8 +55,24 @@ class _LoginScreenState extends State<LoginScreen>
             child: Column(
               children: [
                 _buildHeader(context),
-                _buildLoginCard(context),
-                const SizedBox(height: 32),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  child: Column(
+                    children: [
+                      const _WelcomeSubtitle(),
+                      const SizedBox(height: 24),
+                      // Row 1: Admin
+                      const _AdminRoleCard(),
+                      const SizedBox(height: 20),
+                      // Row 2: Faculty
+                      const _FacultyRoleCard(),
+                      const SizedBox(height: 20),
+                      // Row 3: Student
+                      const _StudentRoleCard(),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -62,53 +81,48 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  // ── Header with forest visual ─────────────────────────────────────────────
-
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: AppColors.primaryGradient,
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(40),
-          bottomRight: Radius.circular(40),
+          bottomLeft: Radius.circular(36),
+          bottomRight: Radius.circular(36),
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(32, 60, 32, 48),
+        padding: const EdgeInsets.fromLTRB(24, 40, 24, 36),
         child: Column(
           children: [
-            // Logo
             Container(
-              width: 96,
-              height: 96,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
+                    color: Colors.black26,
+                    blurRadius: 16,
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 child: Image.asset(
                   AppConstants.logoAsset,
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => const Icon(
                     Icons.forest,
-                    size: 48,
+                    size: 40,
                     color: AppColors.primary,
                   ),
                 ),
               ),
             ),
-
-            const SizedBox(height: 24),
-
+            const SizedBox(height: 16),
             const Text(
               AppConstants.appName,
               style: TextStyle(
@@ -119,32 +133,29 @@ class _LoginScreenState extends State<LoginScreen>
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               AppConstants.appSubtitle,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withOpacity(0.85),
                 fontSize: 12,
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.3,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.white.withOpacity(0.3)),
               ),
-              child: Text(
+              child: const Text(
                 AppConstants.academyName,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
                 ),
               ),
             ),
@@ -153,282 +164,199 @@ class _LoginScreenState extends State<LoginScreen>
       ),
     );
   }
+}
 
-  // ── Login Card ─────────────────────────────────────────────────────────────
+class _WelcomeSubtitle extends StatelessWidget {
+  const _WelcomeSubtitle();
 
-  Widget _buildLoginCard(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Sign In',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const Text(
+          'Select Your Login Role',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
           ),
-          const SizedBox(height: 6),
-          Text(
-            'Access your learning portal',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Choose your designated role to log into your workspace',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppColors.textSecondary,
           ),
-          const SizedBox(height: 32),
-
-          // ── Trainee Section ──────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadow,
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.school_outlined,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Trainee Login',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          'For forest officer trainees',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _GoogleSignInButton(),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // ── Faculty Section ──────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3E5F5),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.person_outlined,
-                        color: Color(0xFF4A148C),
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Faculty / Admin Login',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          'For approved faculty & administrators',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _FacultyLoginButton(),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // ── Footer Note ──────────────────────────────────────────────────
-          Center(
-            child: Text(
-              'Faculty accounts are created and approved by administrators only.',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.textHint,
-                fontStyle: FontStyle.italic,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }
 
-// ── Google Sign-In Button ──────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// ROW 1: ADMIN ROLE CARD
+// ─────────────────────────────────────────────────────────────────────────────
 
-class _GoogleSignInButton extends StatelessWidget {
+class _AdminRoleCard extends StatefulWidget {
+  const _AdminRoleCard();
+
+  @override
+  State<_AdminRoleCard> createState() => _AdminRoleCardState();
+}
+
+class _AdminRoleCardState extends State<_AdminRoleCard> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailCtrl = TextEditingController(text: 'apforest@email.com');
+  final _passCtrl = TextEditingController(text: 'apforest123');
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loginAdmin() async {
+    if (!_formKey.currentState!.validate()) return;
+    final auth = context.read<AuthProvider>();
+    final success = await auth.signIn(
+      identifier: _emailCtrl.text.trim(),
+      password: _passCtrl.text,
+      expectedRole: UserRole.admin,
+    );
+
+    if (!success && mounted && auth.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.errorMessage!), backgroundColor: AppColors.error),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: OutlinedButton(
-        onPressed: auth.isLoading ? null : () => _signInWithGoogle(context),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.border, width: 1.5),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          backgroundColor: Colors.white,
-        ),
-        child: auth.isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Google "G" icon using Text (no image dependency)
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'G',
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFBF360C).withOpacity(0.3), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFBE9E7),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.admin_panel_settings, color: Color(0xFFBF360C), size: 22),
+                ),
+                const SizedBox(width: 12),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ADMINISTRATOR',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF4285F4),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFFBF360C),
+                        letterSpacing: 0.8,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Continue with Google',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                    Text(
+                      'System Administration & Faculty Approvals',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Email
+            TextFormField(
+              controller: _emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Admin Email',
+                prefixIcon: Icon(Icons.email_outlined),
+                isDense: true,
               ),
+              validator: (v) => v == null || !v.contains('@') ? 'Enter admin email' : null,
+            ),
+            const SizedBox(height: 10),
+
+            // Password
+            TextFormField(
+              controller: _passCtrl,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                prefixIcon: const Icon(Icons.lock_outlined),
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                ),
+                isDense: true,
+              ),
+              validator: (v) => v == null || v.isEmpty ? 'Enter password' : null,
+            ),
+            const SizedBox(height: 16),
+
+            // Submit Button
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: auth.isLoading ? null : _loginAdmin,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBF360C),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: auth.isLoading
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Login as Admin', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-
-  Future<void> _signInWithGoogle(BuildContext context) async {
-    final auth = context.read<AuthProvider>();
-    final success = await auth.signInWithGoogle();
-    if (!success && context.mounted && auth.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.errorMessage!),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
 }
 
-// ── Faculty Login Button ───────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// ROW 2: FACULTY / TEACHER ROLE CARD
+// ─────────────────────────────────────────────────────────────────────────────
 
-class _FacultyLoginButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: OutlinedButton.icon(
-        onPressed: () => _showFacultyLoginDialog(context),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF4A148C),
-          side: const BorderSide(color: Color(0xFF4A148C), width: 1.5),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        icon: const Icon(Icons.lock_outlined, size: 18),
-        label: const Text(
-          'Faculty / Admin Sign In',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
-
-  void _showFacultyLoginDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => const _FacultyLoginDialog(),
-    );
-  }
-}
-
-class _FacultyLoginDialog extends StatefulWidget {
-  const _FacultyLoginDialog();
+class _FacultyRoleCard extends StatefulWidget {
+  const _FacultyRoleCard();
 
   @override
-  State<_FacultyLoginDialog> createState() => _FacultyLoginDialogState();
+  State<_FacultyRoleCard> createState() => _FacultyRoleCardState();
 }
 
-class _FacultyLoginDialogState extends State<_FacultyLoginDialog> {
+class _FacultyRoleCardState extends State<_FacultyRoleCard> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
@@ -441,32 +369,96 @@ class _FacultyLoginDialogState extends State<_FacultyLoginDialog> {
     super.dispose();
   }
 
+  Future<void> _loginFaculty() async {
+    if (!_formKey.currentState!.validate()) return;
+    final auth = context.read<AuthProvider>();
+    final success = await auth.signIn(
+      identifier: _emailCtrl.text.trim(),
+      password: _passCtrl.text,
+      expectedRole: UserRole.faculty,
+    );
+
+    if (!success && mounted && auth.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(auth.errorMessage!),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text(
-        'Faculty / Admin Login',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF4A148C).withOpacity(0.3), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      content: Form(
+      child: Form(
         key: _formKey,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3E5F5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.person_outline, color: Color(0xFF4A148C), size: 22),
+                ),
+                const SizedBox(width: 12),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'FACULTY / TEACHER',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF4A148C),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    Text(
+                      'Course Management & AI Quiz Creation',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Email
             TextFormField(
               controller: _emailCtrl,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
-                labelText: 'Email',
+                labelText: 'Faculty Email',
                 prefixIcon: Icon(Icons.email_outlined),
+                isDense: true,
               ),
-              validator: (v) =>
-                  v == null || !v.contains('@') ? 'Enter valid email' : null,
+              validator: (v) => v == null || !v.contains('@') ? 'Enter valid email' : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
+
+            // Password
             TextFormField(
               controller: _passCtrl,
               obscureText: _obscurePassword,
@@ -474,72 +466,255 @@ class _FacultyLoginDialogState extends State<_FacultyLoginDialog> {
                 labelText: 'Password',
                 prefixIcon: const Icon(Icons.lock_outlined),
                 suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                  ),
-                  onPressed: () =>
-                      setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                 ),
+                isDense: true,
               ),
-              validator: (v) =>
-                  v == null || v.length < 6 ? 'Min 6 characters' : null,
+              validator: (v) => v == null || v.isEmpty ? 'Enter password' : null,
             ),
-            if (auth.errorMessage != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.errorLight,
-                  borderRadius: BorderRadius.circular(8),
+            const SizedBox(height: 16),
+
+            // Submit Button
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: auth.isLoading ? null : _loginFaculty,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4A148C),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text(
-                  auth.errorMessage!,
-                  style: const TextStyle(
-                    color: AppColors.error,
-                    fontSize: 12,
-                  ),
-                ),
+                child: auth.isLoading
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Login as Faculty', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
               ),
-            ],
+            ),
+            const SizedBox(height: 12),
+
+            // Register Link
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don't have a faculty account?", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  TextButton(
+                    onPressed: () => context.go(RouteNames.registerFaculty),
+                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6)),
+                    child: const Text(
+                      'Create Faculty Account',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF4A148C)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            context.read<AuthProvider>().clearError();
-            Navigator.pop(context);
-          },
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: auth.isLoading ? null : _submit,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF4A148C),
-          ),
-          child: auth.isLoading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Text('Sign In'),
-        ),
-      ],
     );
   }
+}
 
-  Future<void> _submit() async {
+// ─────────────────────────────────────────────────────────────────────────────
+// ROW 3: STUDENT ROLE CARD
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _StudentRoleCard extends StatefulWidget {
+  const _StudentRoleCard();
+
+  @override
+  State<_StudentRoleCard> createState() => _StudentRoleCardState();
+}
+
+class _StudentRoleCardState extends State<_StudentRoleCard> {
+  final _formKey = GlobalKey<FormState>();
+  final _identifierCtrl = TextEditingController(); // User ID or Email
+  final _passCtrl = TextEditingController();
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _identifierCtrl.dispose();
+    _passCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loginStudent() async {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
-    final success = await auth.signInWithEmail(_emailCtrl.text, _passCtrl.text);
-    if (success && mounted) {
-      Navigator.pop(context);
+    final success = await auth.signIn(
+      identifier: _identifierCtrl.text.trim(),
+      password: _passCtrl.text,
+      expectedRole: UserRole.trainee,
+    );
+
+    if (!success && mounted && auth.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.errorMessage!), backgroundColor: AppColors.error),
+      );
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.school_outlined, color: AppColors.primary, size: 22),
+                ),
+                const SizedBox(width: 12),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'STUDENT / TRAINEE',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    Text(
+                      'Access Learning Materials, Videos & Quizzes',
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // User ID / Email
+            TextFormField(
+              controller: _identifierCtrl,
+              decoration: const InputDecoration(
+                labelText: 'User ID or Email',
+                hintText: 'e.g. APSFA2026001 or email@domain.com',
+                prefixIcon: Icon(Icons.badge_outlined),
+                isDense: true,
+              ),
+              validator: (v) => v == null || v.trim().isEmpty ? 'Enter User ID or Email' : null,
+            ),
+            const SizedBox(height: 10),
+
+            // Password
+            TextFormField(
+              controller: _passCtrl,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                prefixIcon: const Icon(Icons.lock_outlined),
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                ),
+                isDense: true,
+              ),
+              validator: (v) => v == null || v.isEmpty ? 'Enter password' : null,
+            ),
+            const SizedBox(height: 16),
+
+            // Submit Button
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: auth.isLoading ? null : _loginStudent,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: auth.isLoading
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Login as Student', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Register Link
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don't have a student account?", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  TextButton(
+                    onPressed: () => context.go(RouteNames.registerStudent),
+                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6)),
+                    child: const Text(
+                      'Create Student Account',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+            const Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  child: Text('OR', style: TextStyle(fontSize: 11, color: AppColors.textHint)),
+                ),
+                Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Google Sign-In for Student
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                onPressed: auth.isLoading ? null : () => auth.signInWithGoogle(),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.border),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Text(
+                  'G',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF4285F4)),
+                ),
+                label: const Text(
+                  'Continue with Google',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

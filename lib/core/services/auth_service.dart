@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // lib/core/services/auth_service.dart
-// Firebase Authentication service — trainee Google Sign-In, faculty email/password.
-// Role is ALWAYS read from Firestore (never trusted from client).
+// Firebase Authentication service — Admin, Faculty (with approval flow), Student.
+// Default Admin: apforest@email.com / apforest123
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,7 +21,7 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
-  // ── Google Sign-In (Trainees) ─────────────────────────────────────────────
+  // ── Google Sign-In (Students / Trainees) ──────────────────────────────────
 
   Future<UserModel?> signInWithGoogle() async {
     try {
@@ -40,15 +40,13 @@ class AuthService {
       final User? user = result.user;
       if (user == null) return null;
 
-      // Check if profile exists in Firestore
       final docRef = _db.collection(AppConstants.colUsers).doc(user.uid);
       final docSnap = await docRef.get();
 
       if (!docSnap.exists) {
-        // First-time login → create trainee profile
         final newUser = UserModel(
           uid: user.uid,
-          name: user.displayName ?? 'Officer Trainee',
+          name: user.displayName ?? 'Student',
           email: user.email ?? '',
           photoUrl: user.photoURL,
           role: UserRole.trainee,
@@ -65,37 +63,91 @@ class AuthService {
     }
   }
 
-  // ── Faculty / Admin Email+Password Sign-In ────────────────────────────────
+  // ── Unified Email / User ID Sign-In ───────────────────────────────────────
 
-  Future<UserModel?> signInWithEmail(String email, String password) async {
+  /// Supports logging in using Email OR Student User ID (e.g. APSFA2026001).
+  Future<UserModel?> signIn({
+    required String identifier, // Email or User ID
+    required String password,
+    UserRole? expectedRole,
+  }) async {
+    final trimmedIdentifier = identifier.trim();
+
+    // Check if logging in as Default Admin
+    if (trimmedIdentifier.toLowerCase() == 'apforest@email.com' && password == 'apforest123') {
+      return await _loginOrCreateDefaultAdmin();
+    }
+
+    String emailToUse = trimmedIdentifier;
+
+    // If identifier is not an email address, treat it as Student User ID
+    if (!trimmedIdentifier.contains('@')) {
+      final userQuery = await _db
+          .collection(AppConstants.colUsers)
+          .where('studentId', isEqualTo: trimmedIdentifier)
+          .limit(1)
+          .get();
+
+      if (userQuery.docs.isEmpty) {
+        final fallbackQuery = await _db
+            .collection(AppConstants.colUsers)
+            .where('userId', isEqualTo: trimmedIdentifier)
+            .limit(1)
+            .get();
+        if (fallbackQuery.docs.isEmpty) {
+          throw Exception('This User ID is not registered.');
+        }
+        emailToUse = fallbackQuery.docs.first.data()['email'] ?? '';
+      } else {
+        emailToUse = userQuery.docs.first.data()['email'] ?? '';
+      }
+    }
+
     try {
       final UserCredential result = await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
+        email: emailToUse,
         password: password,
       );
 
       final User? user = result.user;
-      if (user == null) return null;
+      if (user == null) throw Exception('Authentication failed.');
 
-      // Read role from Firestore — NEVER trust client-side role claims
       final docSnap =
           await _db.collection(AppConstants.colUsers).doc(user.uid).get();
 
       if (!docSnap.exists) {
         await _auth.signOut();
-        throw Exception('Account not found. Contact administrator.');
+        throw Exception('Account record not found. Please contact administrator.');
       }
 
       final userModel = UserModel.fromFirestore(docSnap);
 
-      if (userModel.status == AppConstants.statusInactive) {
+      // Verify Role if expected
+      if (expectedRole != null && userModel.role != expectedRole) {
         await _auth.signOut();
-        throw Exception('Account is deactivated. Contact administrator.');
+        throw Exception('Access denied. Please log in using the correct role section.');
       }
 
-      if (userModel.status == AppConstants.statusPending) {
+      // Check Status
+      if (userModel.status == 'pending') {
         await _auth.signOut();
-        throw Exception('Account is pending approval. Contact administrator.');
+        throw Exception(
+          'Your faculty account is awaiting administrator approval.\n\n'
+          'You will be able to log in after your account has been approved by the administrator.',
+        );
+      }
+
+      if (userModel.status == 'rejected') {
+        await _auth.signOut();
+        throw Exception(
+          'Your faculty registration request has been rejected.\n'
+          'Please contact the administrator.',
+        );
+      }
+
+      if (userModel.status == 'inactive') {
+        await _auth.signOut();
+        throw Exception('Account is deactivated. Contact administrator.');
       }
 
       return userModel;
@@ -104,7 +156,138 @@ class AuthService {
     }
   }
 
-  // ── Get Current User Profile from Firestore ───────────────────────────────
+  // ── Default Admin Helper ──────────────────────────────────────────────────
+
+  Future<UserModel> _loginOrCreateDefaultAdmin() async {
+    const adminEmail = 'apforest@email.com';
+    const adminPass = 'apforest123';
+
+    try {
+      final result = await _auth.signInWithEmailAndPassword(
+        email: adminEmail,
+        password: adminPass,
+      );
+      final user = result.user!;
+      final docSnap = await _db.collection(AppConstants.colUsers).doc(user.uid).get();
+
+      if (!docSnap.exists) {
+        final adminModel = UserModel(
+          uid: user.uid,
+          name: 'System Administrator',
+          email: adminEmail,
+          role: UserRole.admin,
+          status: AppConstants.statusActive,
+          createdAt: DateTime.now(),
+        );
+        await _db.collection(AppConstants.colUsers).doc(user.uid).set(adminModel.toFirestore());
+        return adminModel;
+      }
+
+      return UserModel.fromFirestore(docSnap);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        // Create default admin account in Auth + Firestore
+        final result = await _auth.createUserWithEmailAndPassword(
+          email: adminEmail,
+          password: adminPass,
+        );
+        final user = result.user!;
+        final adminModel = UserModel(
+          uid: user.uid,
+          name: 'System Administrator',
+          email: adminEmail,
+          role: UserRole.admin,
+          status: AppConstants.statusActive,
+          createdAt: DateTime.now(),
+        );
+        await _db.collection(AppConstants.colUsers).doc(user.uid).set(adminModel.toFirestore());
+        return adminModel;
+      }
+      rethrow;
+    }
+  }
+
+  // ── Faculty Self-Registration ─────────────────────────────────────────────
+
+  Future<void> registerFaculty({
+    required String name,
+    required String subject,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final result = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      final user = result.user;
+      if (user == null) throw Exception('Registration failed.');
+
+      final facultyModel = UserModel(
+        uid: user.uid,
+        name: name.trim(),
+        email: email.trim(),
+        role: UserRole.faculty,
+        subject: subject.trim(),
+        status: 'pending', // Awaiting admin approval
+        createdAt: DateTime.now(),
+      );
+
+      await _db.collection(AppConstants.colUsers).doc(user.uid).set(facultyModel.toFirestore());
+
+      // Immediately sign out so pending faculty cannot stay authenticated
+      await _auth.signOut();
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthError(e);
+    }
+  }
+
+  // ── Student Self-Registration ─────────────────────────────────────────────
+
+  Future<UserModel> registerStudent({
+    required String studentId,
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final cleanId = studentId.trim();
+
+    // Check unique Student ID
+    final existingId = await _db
+        .collection(AppConstants.colUsers)
+        .where('studentId', isEqualTo: cleanId)
+        .get();
+
+    if (existingId.docs.isNotEmpty) {
+      throw Exception('This User ID is already registered. Please choose another User ID.');
+    }
+
+    try {
+      final result = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      final user = result.user;
+      if (user == null) throw Exception('Registration failed.');
+
+      final studentModel = UserModel(
+        uid: user.uid,
+        name: name.trim(),
+        email: email.trim(),
+        role: UserRole.trainee,
+        studentId: cleanId,
+        status: 'active',
+        createdAt: DateTime.now(),
+      );
+
+      await _db.collection(AppConstants.colUsers).doc(user.uid).set(studentModel.toFirestore());
+      return studentModel;
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthError(e);
+    }
+  }
+
+  // ── Current User Profile ──────────────────────────────────────────────────
 
   Future<UserModel?> getCurrentUserProfile() async {
     final user = _auth.currentUser;
@@ -126,61 +309,15 @@ class AuthService {
     ]);
   }
 
-  // ── Admin: Create Faculty Account (called from Admin panel) ───────────────
-
-  /// Creates a faculty Firebase Auth account + Firestore profile.
-  /// Only callable by authenticated admin users.
-  Future<String> createFacultyAccount({
-    required String email,
-    required String password,
-    required String name,
-    required String designation,
-    required String department,
-    String? specialization,
-    String? phone,
-  }) async {
-    // NOTE: In production, this should be a Cloud Function or Admin SDK call
-    // so the calling admin doesn't get signed out. For MVP, we note this limitation.
-    try {
-      final UserCredential result = await _auth.createUserWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
-      );
-
-      final User? user = result.user;
-      if (user == null) throw Exception('Failed to create user');
-
-      final facultyModel = UserModel(
-        uid: user.uid,
-        name: name,
-        email: email,
-        role: UserRole.faculty,
-        designation: designation,
-        department: department,
-        specialization: specialization,
-        status: AppConstants.statusActive,
-        createdAt: DateTime.now(),
-      );
-
-      await _db
-          .collection(AppConstants.colUsers)
-          .doc(user.uid)
-          .set(facultyModel.toFirestore());
-
-      return user.uid;
-    } on FirebaseAuthException catch (e) {
-      throw _handleFirebaseAuthError(e);
-    }
-  }
-
   // ── Error Handler ─────────────────────────────────────────────────────────
 
   Exception _handleFirebaseAuthError(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
-        return Exception('No account found with this email.');
+        return Exception('Invalid email or password.');
       case 'wrong-password':
-        return Exception('Incorrect password.');
+      case 'invalid-credential':
+        return Exception('Invalid email or password.');
       case 'invalid-email':
         return Exception('Invalid email address.');
       case 'user-disabled':
@@ -188,11 +325,9 @@ class AuthService {
       case 'too-many-requests':
         return Exception('Too many attempts. Please try again later.');
       case 'email-already-in-use':
-        return Exception('Email is already in use.');
+        return Exception('An account with this email already exists.');
       case 'weak-password':
         return Exception('Password must be at least 6 characters.');
-      case 'network-request-failed':
-        return Exception('Network error. Check your internet connection.');
       default:
         return Exception(e.message ?? 'Authentication error occurred.');
     }

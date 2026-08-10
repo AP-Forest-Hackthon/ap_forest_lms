@@ -1,23 +1,25 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // lib/features/trainee/dashboard/trainee_dashboard_screen.dart
-// Shell screen with bottom navigation for trainees.
+// Student / Trainee Dashboard with User ID, Classes, Learning Resources, and
+// Live Classes (Google Meet & Zoom launch buttons).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/routes/route_names.dart';
-import '../../../core/services/auth_service.dart';
 import '../../../models/user_model.dart';
 import '../../../models/course_model.dart';
 import '../../../models/other_models.dart';
+import '../../../models/live_class_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../repositories/course_repository.dart';
 import '../../../repositories/resource_repository.dart';
 import '../../../repositories/user_repository.dart';
+import '../../../repositories/live_class_repository.dart';
 
 // ── Shell Screen (holds bottom nav) ──────────────────────────────────────────
 
@@ -63,7 +65,7 @@ class _TraineeDashboardScreenState extends State<TraineeDashboardScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.menu_book_outlined),
               activeIcon: Icon(Icons.menu_book),
-              label: 'Courses',
+              label: 'Classes',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.library_books_outlined),
@@ -98,6 +100,7 @@ class TraineeHomeTab extends StatelessWidget {
     final courseRepo = CourseRepository();
     final resourceRepo = ResourceRepository();
     final userRepo = UserRepository();
+    final liveClassRepo = LiveClassRepository();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -119,28 +122,28 @@ class TraineeHomeTab extends StatelessWidget {
                     _StatsRow(user: user, userRepo: userRepo),
                     const SizedBox(height: 24),
 
-                    // Continue Learning
-                    _SectionHeader(title: 'Continue Learning', onSeeAll: () => context.go(RouteNames.traineeCourses)),
+                    // Upcoming Live Classes (Google Meet / Zoom)
+                    const _SectionHeader(title: 'Upcoming Live Classes'),
+                    const SizedBox(height: 12),
+                    _StudentLiveClassesSection(liveClassRepo: liveClassRepo),
+                    const SizedBox(height: 24),
+
+                    // My Classes & Courses
+                    _SectionHeader(title: 'My Classes & Courses', onSeeAll: () => context.go(RouteNames.traineeCourses)),
                     const SizedBox(height: 12),
                     _ContinueLearningSection(user: user, courseRepo: courseRepo),
                     const SizedBox(height: 24),
 
-                    // Quick Actions
-                    const _SectionHeader(title: 'Quick Actions'),
+                    // Quick Learning Resources
+                    const _SectionHeader(title: 'Learning Resources'),
                     const SizedBox(height: 12),
-                    _QuickActionsGrid(),
+                    const _QuickActionsGrid(),
                     const SizedBox(height: 24),
 
                     // Announcements
                     _SectionHeader(title: 'Announcements', onSeeAll: () => context.go(RouteNames.announcements)),
                     const SizedBox(height: 12),
                     _AnnouncementsSection(resourceRepo: resourceRepo),
-                    const SizedBox(height: 24),
-
-                    // Upcoming Training
-                    _SectionHeader(title: 'Upcoming Schedule', onSeeAll: () => context.go(RouteNames.timetable)),
-                    const SizedBox(height: 12),
-                    _UpcomingScheduleSection(userRepo: userRepo),
                     const SizedBox(height: 80),
                   ],
                 ),
@@ -154,7 +157,7 @@ class TraineeHomeTab extends StatelessWidget {
 
   SliverAppBar _buildAppBar(BuildContext context, UserModel? user) {
     return SliverAppBar(
-      expandedHeight: 140,
+      expandedHeight: 150,
       floating: false,
       pinned: true,
       backgroundColor: AppColors.primary,
@@ -178,47 +181,42 @@ class TraineeHomeTab extends StatelessWidget {
                               'Welcome back,',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.8),
-                                fontSize: 14,
+                                fontSize: 13,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              user?.name.split(' ').first ?? 'Trainee',
+                              user?.name ?? 'Student',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 22,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
+                            if (user?.studentId != null && user!.studentId!.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'User ID: ${user.studentId}',
+                                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                      // Profile picture
                       GestureDetector(
                         onTap: () => context.go(RouteNames.traineeProfile),
                         child: CircleAvatar(
                           radius: 22,
                           backgroundColor: Colors.white.withOpacity(0.3),
-                          backgroundImage: user?.photoUrl != null
-                              ? NetworkImage(user!.photoUrl!)
-                              : null,
-                          child: user?.photoUrl == null
-                              ? const Icon(Icons.person, color: Colors.white, size: 24)
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, color: Colors.white54, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        AppConstants.academyName,
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 12,
+                          backgroundImage: user?.photoUrl != null ? NetworkImage(user!.photoUrl!) : null,
+                          child: user?.photoUrl == null ? const Icon(Icons.person, color: Colors.white, size: 24) : null,
                         ),
                       ),
                     ],
@@ -234,11 +232,142 @@ class TraineeHomeTab extends StatelessWidget {
           onPressed: () => context.go(RouteNames.announcements),
           icon: const Icon(Icons.notifications_outlined, color: Colors.white),
         ),
-        IconButton(
-          onPressed: () => context.go(RouteNames.aiAssistant),
-          icon: const Icon(Icons.smart_toy_outlined, color: Colors.white),
-        ),
       ],
+    );
+  }
+}
+
+// ── Student Live Classes Section ──────────────────────────────────────────────
+
+class _StudentLiveClassesSection extends StatelessWidget {
+  final LiveClassRepository liveClassRepo;
+  const _StudentLiveClassesSection({required this.liveClassRepo});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<LiveClassModel>>(
+      stream: liveClassRepo.getUpcomingLiveClasses(),
+      builder: (context, snapshot) {
+        final classes = snapshot.data ?? [];
+        if (classes.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.video_camera_back_outlined, color: AppColors.textSecondary, size: 20),
+                SizedBox(width: 10),
+                Text(
+                  'No upcoming live sessions scheduled.',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          children: classes.map((item) => _LiveClassItemCard(liveClass: item)).toList(),
+        );
+      },
+    );
+  }
+}
+
+class _LiveClassItemCard extends StatelessWidget {
+  final LiveClassModel liveClass;
+  const _LiveClassItemCard({required this.liveClass});
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [BoxShadow(color: AppColors.shadow, blurRadius: 6, offset: Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.live_tv, color: Colors.red, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      liveClass.topic,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    ),
+                    Text(
+                      'Subject: ${liveClass.subject}',
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Join Buttons
+          Row(
+            children: [
+              if (liveClass.hasGoogleMeet)
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _launchUrl(liveClass.googleMeetUrl!),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEA4335),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    icon: const Icon(Icons.video_camera_front, size: 16),
+                    label: const Text('Join Google Meet', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              if (liveClass.hasGoogleMeet && liveClass.hasZoom) const SizedBox(width: 8),
+              if (liveClass.hasZoom)
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _launchUrl(liveClass.zoomUrl!),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2D8CFF),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    icon: const Icon(Icons.video_call, size: 16),
+                    label: const Text('Join Zoom', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -354,15 +483,23 @@ class _ContinueLearningSection extends StatelessWidget {
     return StreamBuilder<List<CourseModel>>(
       stream: courseRepo.getPublishedCourses(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildSkeleton();
-        }
         final courses = snapshot.data ?? [];
         if (courses.isEmpty) {
-          return _buildEmpty();
+          return Container(
+            height: 90,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Text(
+              'No courses available yet.',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          );
         }
         return SizedBox(
-          height: 160,
+          height: 150,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: courses.length.clamp(0, 5),
@@ -374,39 +511,6 @@ class _ContinueLearningSection extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildSkeleton() {
-    return SizedBox(
-      height: 160,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: 3,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (_, __) => Container(
-          width: 220,
-          decoration: BoxDecoration(
-            color: AppColors.divider,
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmpty() {
-    return Container(
-      height: 100,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: const Text(
-        'No courses available yet.',
-        style: TextStyle(color: AppColors.textSecondary),
-      ),
     );
   }
 }
@@ -423,12 +527,10 @@ class _CourseTile extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.go('/trainee/courses/${course.id}'),
       child: Container(
-        width: 220,
-        padding: const EdgeInsets.all(16),
+        width: 200,
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
             colors: [color, color.withOpacity(0.8)],
           ),
           borderRadius: BorderRadius.circular(16),
@@ -436,43 +538,17 @@ class _CourseTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.menu_book, color: Colors.white, size: 18),
-            ),
+            const Icon(Icons.menu_book, color: Colors.white, size: 20),
             const Spacer(),
             Text(
               course.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
             Text(
               course.categoryName ?? 'General',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 11,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Progress bar placeholder (needs progress data)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(2),
-              child: LinearProgressIndicator(
-                value: 0.3,
-                backgroundColor: Colors.white.withOpacity(0.3),
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                minHeight: 4,
-              ),
+              style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11),
             ),
           ],
         ),
@@ -485,11 +561,11 @@ class _CourseTile extends StatelessWidget {
 
 class _QuickActionsGrid extends StatelessWidget {
   final _actions = const [
-    (Icons.map_outlined, 'Academy Map', RouteNames.academyMap, AppColors.primary),
+    (Icons.library_books_outlined, 'Study Notes', RouteNames.library, AppColors.primary),
     (Icons.smart_toy_outlined, 'AI Assistant', RouteNames.aiAssistant, Color(0xFF1565C0)),
-    (Icons.schedule_outlined, 'Timetable', RouteNames.timetable, Color(0xFF00695C)),
-    (Icons.bookmark_outline, 'Bookmarks', RouteNames.bookmarks, Color(0xFFE65100)),
-    (Icons.info_outline, 'Academy', RouteNames.academyInfo, Color(0xFF4A148C)),
+    (Icons.map_outlined, 'Academy Map', RouteNames.academyMap, Color(0xFF00695C)),
+    (Icons.quiz_outlined, 'Quizzes', RouteNames.quizList, Color(0xFFE65100)),
+    (Icons.info_outline, 'Academy Info', RouteNames.academyInfo, Color(0xFF4A148C)),
     (Icons.trending_up, 'Progress', RouteNames.progress, Color(0xFFC62828)),
   ];
 
@@ -521,21 +597,17 @@ class _QuickActionsGrid extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: color, size: 24),
+                  child: Icon(icon, color: color, size: 22),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -547,7 +619,7 @@ class _QuickActionsGrid extends StatelessWidget {
   }
 }
 
-// ── Announcements Preview ─────────────────────────────────────────────────────
+// ── Announcements Section ─────────────────────────────────────────────────────
 
 class _AnnouncementsSection extends StatelessWidget {
   final ResourceRepository resourceRepo;
@@ -566,16 +638,11 @@ class _AnnouncementsSection extends StatelessWidget {
               color: AppColors.surfaceVariant,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Text(
-              'No announcements.',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
+            child: const Text('No announcements.', style: TextStyle(color: AppColors.textSecondary)),
           );
         }
         return Column(
-          children: announcements
-              .map((ann) => _AnnouncementTile(announcement: ann))
-              .toList(),
+          children: announcements.map((ann) => _AnnouncementTile(announcement: ann)).toList(),
         );
       },
     );
@@ -586,203 +653,27 @@ class _AnnouncementTile extends StatelessWidget {
   final AnnouncementModel announcement;
   const _AnnouncementTile({required this.announcement});
 
-  Color get _priorityColor {
-    switch (announcement.priority) {
-      case 'urgent': return AppColors.priorityUrgent;
-      case 'important': return AppColors.priorityImportant;
-      default: return AppColors.priorityNormal;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(color: AppColors.shadow, blurRadius: 6, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 48,
-            decoration: BoxDecoration(
-              color: _priorityColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  announcement.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  announcement.description,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Upcoming Schedule ─────────────────────────────────────────────────────────
-
-class _UpcomingScheduleSection extends StatelessWidget {
-  final UserRepository userRepo;
-  const _UpcomingScheduleSection({required this.userRepo});
-
-  @override
-  Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final weekEnd = now.add(const Duration(days: 7));
-
-    return StreamBuilder<List<TimetableModel>>(
-      stream: userRepo.getTimetable(from: now, to: weekEnd),
-      builder: (context, snapshot) {
-        final entries = (snapshot.data ?? []).take(3).toList();
-        if (entries.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              'No upcoming sessions this week.',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          );
-        }
-        return Column(
-          children: entries.map((e) => _ScheduleTile(entry: e)).toList(),
-        );
-      },
-    );
-  }
-}
-
-class _ScheduleTile extends StatelessWidget {
-  final TimetableModel entry;
-  const _ScheduleTile({required this.entry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  '${entry.date.day}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
-                ),
-                Text(
-                  _monthShort(entry.date.month),
-                  style: const TextStyle(fontSize: 10, color: AppColors.primary),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Row(
-                  children: [
-                    const Icon(Icons.access_time, size: 12, color: AppColors.textHint),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${entry.startTime} – ${entry.endTime}',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                    if (entry.location != null) ...[
-                      const SizedBox(width: 8),
-                      const Icon(Icons.place_outlined, size: 12, color: AppColors.textHint),
-                      const SizedBox(width: 2),
-                      Text(
-                        entry.location!,
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              entry.type,
-              style: const TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600),
-            ),
-          ),
+          Text(announcement.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 2),
+          Text(announcement.description, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         ],
       ),
     );
   }
-
-  String _monthShort(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[month - 1];
-  }
 }
-
-// ── Section Header ─────────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   final String title;
@@ -794,26 +685,11 @@ class _SectionHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
+        Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
         if (onSeeAll != null)
           TextButton(
             onPressed: onSeeAll,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: const Text(
-              'See all',
-              style: TextStyle(fontSize: 13, color: AppColors.primary),
-            ),
+            child: const Text('See all', style: TextStyle(fontSize: 13, color: AppColors.primary)),
           ),
       ],
     );

@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // lib/providers/auth_provider.dart
-// Auth state + user profile provider.
+// Auth state + user profile provider supporting 3-role logins & registration.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
@@ -33,9 +33,8 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.unauthenticated;
       _user = null;
     } else {
-      // Always fetch role from Firestore on state change
       final profile = await _authService.getCurrentUserProfile();
-      if (profile != null) {
+      if (profile != null && profile.isActive) {
         _user = profile;
         _status = AuthStatus.authenticated;
       } else {
@@ -44,6 +43,42 @@ class AuthProvider extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  // ── Unified Role Sign-In ──────────────────────────────────────────────────
+
+  Future<bool> signIn({
+    required String identifier,
+    required String password,
+    UserRole? expectedRole,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final user = await _authService.signIn(
+        identifier: identifier,
+        password: password,
+        expectedRole: expectedRole,
+      );
+      if (user == null) {
+        _errorMessage = 'Login failed.';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+      _user = user;
+      _status = AuthStatus.authenticated;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   // ── Google Sign-In ────────────────────────────────────────────────────────
@@ -73,21 +108,55 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // ── Email Sign-In ─────────────────────────────────────────────────────────
+  // ── Faculty Self-Registration ─────────────────────────────────────────────
 
-  Future<bool> signInWithEmail(String email, String password) async {
+  Future<bool> registerFaculty({
+    required String name,
+    required String subject,
+    required String email,
+    required String password,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final user = await _authService.signInWithEmail(email, password);
-      if (user == null) {
-        _errorMessage = 'Login failed.';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
+      await _authService.registerFaculty(
+        name: name,
+        subject: subject,
+        email: email,
+        password: password,
+      );
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ── Student Self-Registration ─────────────────────────────────────────────
+
+  Future<bool> registerStudent({
+    required String studentId,
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final user = await _authService.registerStudent(
+        studentId: studentId,
+        name: name,
+        email: email,
+        password: password,
+      );
       _user = user;
       _status = AuthStatus.authenticated;
       _isLoading = false;

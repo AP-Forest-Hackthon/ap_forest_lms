@@ -9,6 +9,8 @@ import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../features/auth/splash/splash_screen.dart';
 import '../../features/auth/login/login_screen.dart';
+import '../../features/auth/register/faculty_register_screen.dart';
+import '../../features/auth/register/student_register_screen.dart';
 
 // Trainee
 import '../../features/trainee/dashboard/trainee_dashboard_screen.dart';
@@ -75,9 +77,12 @@ class AppRouter {
       return location == RouteNames.splash ? null : RouteNames.splash;
     }
 
-    // Not authenticated → go to login
+    // Not authenticated → go to login unless on register pages
     if (authStatus == AuthStatus.unauthenticated) {
-      if (location == RouteNames.splash || location == RouteNames.login) {
+      if (location == RouteNames.splash ||
+          location == RouteNames.login ||
+          location == RouteNames.registerFaculty ||
+          location == RouteNames.registerStudent) {
         return null;
       }
       return RouteNames.login;
@@ -85,7 +90,10 @@ class AppRouter {
 
     // Authenticated → redirect splash/login to appropriate dashboard
     if (authStatus == AuthStatus.authenticated && user != null) {
-      if (location == RouteNames.splash || location == RouteNames.login) {
+      if (location == RouteNames.splash ||
+          location == RouteNames.login ||
+          location == RouteNames.registerFaculty ||
+          location == RouteNames.registerStudent) {
         switch (user.role) {
           case UserRole.trainee:
             return RouteNames.traineeDashboard;
@@ -125,6 +133,14 @@ class AppRouter {
     GoRoute(
       path: RouteNames.login,
       builder: (_, __) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.registerFaculty,
+      builder: (_, __) => const FacultyRegisterScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.registerStudent,
+      builder: (_, __) => const StudentRegisterScreen(),
     ),
 
     // ── Trainee Shell ────────────────────────────────────────────────────────

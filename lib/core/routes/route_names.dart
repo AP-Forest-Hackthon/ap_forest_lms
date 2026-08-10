@@ -9,6 +9,8 @@ class RouteNames {
   // Auth
   static const String splash = '/';
   static const String login = '/login';
+  static const String registerFaculty = '/register/faculty';
+  static const String registerStudent = '/register/student';
 
   // Trainee
   static const String traineeDashboard = '/trainee/home';

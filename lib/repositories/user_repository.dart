@@ -27,7 +27,7 @@ class UserRepository {
     });
   }
 
-  // ── Trainees ──────────────────────────────────────────────────────────────
+  // ── Trainees / Students ───────────────────────────────────────────────────
 
   Stream<List<UserModel>> getAllTrainees() {
     return _users
@@ -37,7 +37,15 @@ class UserRepository {
         .map((s) => s.docs.map(UserModel.fromFirestore).toList());
   }
 
-  // ── Faculty ───────────────────────────────────────────────────────────────
+  Future<bool> isStudentIdTaken(String studentId) async {
+    final snap = await _users
+        .where('studentId', isEqualTo: studentId.trim())
+        .limit(1)
+        .get();
+    return snap.docs.isNotEmpty;
+  }
+
+  // ── Faculty & Faculty Requests ────────────────────────────────────────────
 
   Stream<List<UserModel>> getAllFaculty() {
     return _users
@@ -45,6 +53,32 @@ class UserRepository {
         .orderBy('name')
         .snapshots()
         .map((s) => s.docs.map(UserModel.fromFirestore).toList());
+  }
+
+  Stream<List<UserModel>> getFacultyByStatus(String status) {
+    return _users
+        .where('role', isEqualTo: AppConstants.roleFaculty)
+        .where('status', isEqualTo: status)
+        .snapshots()
+        .map((s) => s.docs.map(UserModel.fromFirestore).toList());
+  }
+
+  Stream<List<UserModel>> getPendingFacultyRequests() {
+    return getFacultyByStatus('pending');
+  }
+
+  Future<void> approveFaculty(String uid) async {
+    await _users.doc(uid).update({
+      'status': 'active',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> rejectFaculty(String uid) async {
+    await _users.doc(uid).update({
+      'status': 'rejected',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<List<UserModel>> getFacultyByCourse(String courseId) async {

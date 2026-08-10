@@ -31,19 +31,21 @@ class UserModel {
   final String? photoUrl;
   final UserRole role;
 
-  // Trainee-specific
+  // Student / Trainee-specific
+  final String? studentId; // Unique student ID (e.g. APSFA2026001)
   final String? batch;
   final String? enrolledCourse;
   final String? enrollmentNumber;
 
   // Faculty-specific
+  final String? subject; // Primary subject taught
   final String? designation;
   final String? department;
   final String? specialization;
   final List<String> assignedCourseIds;
 
-  // Shared
-  final String status; // pending | active | inactive
+  // Shared status: 'pending' | 'active' | 'approved' | 'rejected' | 'inactive'
+  final String status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -53,9 +55,11 @@ class UserModel {
     required this.email,
     this.photoUrl,
     this.role = UserRole.trainee,
+    this.studentId,
     this.batch,
     this.enrolledCourse,
     this.enrollmentNumber,
+    this.subject,
     this.designation,
     this.department,
     this.specialization,
@@ -73,9 +77,11 @@ class UserModel {
       email: data['email'] ?? '',
       photoUrl: data['photoUrl'],
       role: UserRoleExt.fromString(data['role']),
+      studentId: data['studentId'] ?? data['userId'],
       batch: data['batch'],
       enrolledCourse: data['course'],
       enrollmentNumber: data['enrollmentNumber'],
+      subject: data['subject'],
       designation: data['designation'],
       department: data['department'],
       specialization: data['specialization'],
@@ -93,9 +99,12 @@ class UserModel {
       'email': email,
       'photoUrl': photoUrl,
       'role': role.value,
+      'studentId': studentId,
+      'userId': studentId,
       'batch': batch,
       'course': enrolledCourse,
       'enrollmentNumber': enrollmentNumber,
+      'subject': subject,
       'designation': designation,
       'department': department,
       'specialization': specialization,
@@ -110,9 +119,11 @@ class UserModel {
     String? name,
     String? photoUrl,
     UserRole? role,
+    String? studentId,
     String? batch,
     String? enrolledCourse,
     String? enrollmentNumber,
+    String? subject,
     String? designation,
     String? department,
     String? specialization,
@@ -125,9 +136,11 @@ class UserModel {
       email: email,
       photoUrl: photoUrl ?? this.photoUrl,
       role: role ?? this.role,
+      studentId: studentId ?? this.studentId,
       batch: batch ?? this.batch,
       enrolledCourse: enrolledCourse ?? this.enrolledCourse,
       enrollmentNumber: enrollmentNumber ?? this.enrollmentNumber,
+      subject: subject ?? this.subject,
       designation: designation ?? this.designation,
       department: department ?? this.department,
       specialization: specialization ?? this.specialization,
@@ -139,7 +152,10 @@ class UserModel {
   }
 
   bool get isTrainee => role == UserRole.trainee;
+  bool get isStudent => role == UserRole.trainee;
   bool get isFaculty => role == UserRole.faculty;
   bool get isAdmin => role == UserRole.admin;
-  bool get isActive => status == 'active';
+  bool get isActive => status == 'active' || status == 'approved';
+  bool get isPending => status == 'pending';
+  bool get isRejected => status == 'rejected';
 }
