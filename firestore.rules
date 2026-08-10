@@ -1,0 +1,201 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper Functions ──────────────────────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function getRole() {
+      return getUserData().role;
+    }
+
+    function isTrainee() {
+      return isAuthenticated() && getRole() == 'trainee';
+    }
+
+    function isFaculty() {
+      return isAuthenticated() && getRole() == 'faculty';
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getRole() == 'admin';
+    }
+
+    function isFacultyOrAdmin() {
+      return isAuthenticated() && (getRole() == 'faculty' || getRole() == 'admin');
+    }
+
+    function isActiveUser() {
+      return isAuthenticated() && getUserData().status == 'active';
+    }
+
+    // ── Users ─────────────────────────────────────────────────────────────────
+
+    match /users/{uid} {
+      // Users can read their own profile
+      allow read: if isAuthenticated() && (isOwner(uid) || isFacultyOrAdmin());
+
+      // Trainees create their own profile on first Google sign-in
+      allow create: if isAuthenticated() && isOwner(uid);
+
+      // Users can update their own non-role fields
+      allow update: if isAuthenticated() && isOwner(uid) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'uid', 'status']);
+
+      // Admin can update any user
+      allow update: if isAdmin();
+
+      // No deletion (deactivate only)
+      allow delete: if false;
+    }
+
+    // ── Courses ───────────────────────────────────────────────────────────────
+
+    match /courses/{courseId} {
+      // Any authenticated active user can read published courses
+      allow read: if isAuthenticated() && (
+        resource.data.status == 'published' || isFacultyOrAdmin()
+      );
+
+      // Faculty can create/update their own courses
+      allow create: if isFaculty() &&
+        request.resource.data.createdBy == request.auth.uid;
+      allow update: if isFaculty() &&
+        resource.data.facultyIds.hasAny([request.auth.uid]);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+
+      // ── Modules (subcollection) ────────────────────────────────────────────
+      match /modules/{moduleId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/courses/$(courseId)).data.status == 'published' ||
+          isFacultyOrAdmin()
+        );
+        allow write: if isFacultyOrAdmin();
+      }
+    }
+
+    // ── Quizzes ───────────────────────────────────────────────────────────────
+
+    match /quizzes/{quizId} {
+      // Trainees can only read published quizzes
+      allow read: if isAuthenticated() && (
+        resource.data.status == 'published' || isFacultyOrAdmin()
+      );
+
+      // Faculty can create quizzes
+      allow create: if isFaculty();
+
+      // Faculty can update their own quizzes
+      allow update: if isFaculty() && resource.data.createdBy == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+
+      // ── Questions (subcollection) ──────────────────────────────────────────
+      match /questions/{questionId} {
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/quizzes/$(quizId)).data.status == 'published' ||
+          isFacultyOrAdmin()
+        );
+        allow write: if isFacultyOrAdmin();
+      }
+    }
+
+    // ── Quiz Attempts ─────────────────────────────────────────────────────────
+
+    match /quizAttempts/{attemptId} {
+      // Trainees can read/write their own attempts
+      allow read: if isAuthenticated() && (
+        resource.data.traineeId == request.auth.uid || isFacultyOrAdmin()
+      );
+      allow create: if isTrainee() &&
+        request.resource.data.traineeId == request.auth.uid;
+      allow update, delete: if false; // Attempts are immutable
+    }
+
+    // ── Resources / Digital Library ────────────────────────────────────────────
+
+    match /resources/{resourceId} {
+      allow read: if isAuthenticated() && (
+        resource.data.visibility == 'public' || isFacultyOrAdmin()
+      );
+      allow create: if isFacultyOrAdmin();
+      allow update: if isFacultyOrAdmin() ||
+        // Trainees can increment download count only
+        (isTrainee() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['downloadCount']));
+      allow delete: if isAdmin();
+    }
+
+    // ── Categories ────────────────────────────────────────────────────────────
+
+    match /categories/{catId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ── Announcements ─────────────────────────────────────────────────────────
+
+    match /announcements/{annId} {
+      allow read: if isAuthenticated();
+      allow create: if isFacultyOrAdmin();
+      allow update: if isFacultyOrAdmin() && resource.data.authorId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // ── Timetable ─────────────────────────────────────────────────────────────
+
+    match /timetable/{entryId} {
+      allow read: if isAuthenticated();
+      allow write: if isFacultyOrAdmin();
+    }
+
+    // ── Progress ─────────────────────────────────────────────────────────────
+
+    match /progress/{progressId} {
+      allow read: if isAuthenticated() && (
+        resource.data.traineeId == request.auth.uid || isFacultyOrAdmin()
+      );
+      allow create: if isTrainee() &&
+        request.resource.data.traineeId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.traineeId == request.auth.uid || isFacultyOrAdmin()
+      );
+    }
+
+    // ── Bookmarks ─────────────────────────────────────────────────────────────
+
+    match /bookmarks/{bookmarkId} {
+      allow read: if isAuthenticated() && resource.data.traineeId == request.auth.uid;
+      allow create: if isTrainee() && request.resource.data.traineeId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.traineeId == request.auth.uid;
+    }
+
+    // ── AI Jobs ───────────────────────────────────────────────────────────────
+
+    match /aiJobs/{jobId} {
+      allow read: if isAuthenticated() && (
+        resource.data.facultyId == request.auth.uid || isAdmin()
+      );
+      allow create: if isFaculty();
+      allow update: if isAdmin(); // Backend service updates via Admin SDK
+    }
+
+    // ── Academy Settings ──────────────────────────────────────────────────────
+
+    match /academySettings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

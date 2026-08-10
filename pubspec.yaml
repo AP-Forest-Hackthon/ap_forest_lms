@@ -1,0 +1,99 @@
+name: ap_forest_lms
+description: "Forest Academy E-Center — Smart Digital Learning & Training Management Platform for A.P. State Forest Academy, Rajamahendravaram."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ── Firebase ──────────────────────────────────────────────────────────────
+  firebase_core: ^3.13.1
+  firebase_auth: ^5.5.4
+  cloud_firestore: ^5.6.9
+  firebase_storage: ^12.4.5
+  firebase_messaging: ^15.2.5
+  google_sign_in: ^6.2.2
+
+  # ── State Management & Navigation ─────────────────────────────────────────
+  provider: ^6.1.2
+  go_router: ^14.8.1
+
+  # ── Maps ─────────────────────────────────────────────────────────────────
+  # Primary map for Academy location (requires Google Maps API key)
+  google_maps_flutter: ^2.12.0
+
+  # flutter_map: OSM-based map for forest area overlay (no API key needed)
+  # Best for Rajamahendravaram forest coverage via OpenStreetMap/ESRI tiles
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
+  # ── Location / GPS ────────────────────────────────────────────────────────
+  geolocator: ^13.0.2
+  permission_handler: ^11.4.0
+
+  # ── PDF ───────────────────────────────────────────────────────────────────
+  # Render PDFs inline
+  flutter_pdfview: ^1.3.2
+  # Download/save files
+  path_provider: ^2.1.5
+  open_file: ^3.5.8
+
+  # ── File Picker (for PDF upload by faculty) ───────────────────────────────
+  file_picker: ^8.3.7
+
+  # ── Video Player ──────────────────────────────────────────────────────────
+  video_player: ^2.9.5
+  chewie: ^1.11.0
+
+  # ── Network & HTTP (calls Python FastAPI backend for AI quiz gen) ─────────
+  http: ^1.4.0
+  dio: ^5.8.0+1
+
+  # ── Images ───────────────────────────────────────────────────────────────
+  cached_network_image: ^3.4.1
+  image_picker: ^1.1.2
+
+  # ── UI Utilities ─────────────────────────────────────────────────────────
+  shimmer: ^3.0.0           # Skeleton loading animations
+  fl_chart: ^0.71.0         # Analytics charts
+  google_fonts: ^6.2.1      # Inter / Outfit fonts
+  lottie: ^3.3.1            # Lottie animations
+  intl: ^0.20.2             # Date formatting
+  url_launcher: ^6.3.1      # Open links / navigate
+
+  # ── Utilities ─────────────────────────────────────────────────────────────
+  flutter_dotenv: ^5.2.1    # .env config (backend URL etc.)
+  shared_preferences: ^2.5.3
+  uuid: ^4.5.1
+  timeago: ^3.7.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - .env
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
