@@ -52,7 +52,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.school_outlined),
             activeIcon: Icon(Icons.school),
-            label: 'Students',
+            label: 'Trainees',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics_outlined),
@@ -100,6 +100,13 @@ class _AdminHomeTabState extends State<AdminHomeTab> with SingleTickerProviderSt
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
         backgroundColor: AppColors.primary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.fact_check_outlined, color: Colors.white),
+            tooltip: 'Trainee Attendance',
+            onPressed: () => context.go(RouteNames.adminAttendanceList),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.accent,

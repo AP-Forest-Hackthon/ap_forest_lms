@@ -443,7 +443,17 @@ class _AcademyMapScreenState extends State<AcademyMapScreen> {
                 ),
               ],
             ),
-
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => context.go(RouteNames.traineeAttendance),
+                icon: const Icon(Icons.location_on, size: 18),
+                label: const Text('Mark Attendance'),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+              ),
+            ),
+            
             // Forest Map Note
             const SizedBox(height: 12),
             Container(

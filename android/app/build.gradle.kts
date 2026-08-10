@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.apforestacademy.lms"
+    namespace = "com.example.apforest"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -17,9 +17,9 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.apforestacademy.lms"
+        applicationId = "com.example.apforest"
         // Firebase requires minSdk 23+; flutter_map also benefits from 23+
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

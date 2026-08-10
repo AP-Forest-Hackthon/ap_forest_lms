@@ -7,8 +7,8 @@ class AppConstants {
   AppConstants._();
 
   // App Identity
-  static const String appName = 'Forest Academy E-Center';
-  static const String appSubtitle = 'Smart Digital Learning & Training Management Platform';
+  static const String appName = 'AP Forest LMS E-Center';
+  static const String appSubtitle = 'Smart Digital Learning & Training Management Platform for Officer Trainees';
   static const String appTagline = 'Learn. Train. Conserve.';
 
   // Academy Info (configurable from Firestore; these are fallback defaults)
@@ -97,6 +97,7 @@ class AppConstants {
   // Asset paths
   static const String logoAsset = 'assets/images/academy_logo.png';
   static const String placeholderLogoAsset = 'assets/images/logo_placeholder.png';
+  static const String splashVideoAsset = 'assets/videos/splash_video.mp4';
 
   // Map tile URLs
   static const String osmTileUrl =

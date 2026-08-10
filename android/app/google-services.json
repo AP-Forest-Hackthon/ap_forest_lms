@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "853219680869",
+    "project_id": "apforest-313a7",
+    "storage_bucket": "apforest-313a7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:853219680869:android:65d33111f9634885fbdc8c",
+        "android_client_info": {
+          "package_name": "com.example.apforest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDg3uVLNlqD5bTRuGnABhS5ZmqZ7jXDEcQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

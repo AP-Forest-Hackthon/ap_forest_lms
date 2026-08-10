@@ -9,6 +9,7 @@ class RouteNames {
   // Auth
   static const String splash = '/';
   static const String login = '/login';
+  static const String adminLogin = '/admin-login';
   static const String registerFaculty = '/register/faculty';
   static const String registerStudent = '/register/student';
 
@@ -30,6 +31,7 @@ class RouteNames {
   static const String timetable = '/trainee/timetable';
   static const String academyInfo = '/trainee/academy';
   static const String academyMap = '/trainee/map';
+  static const String traineeAttendance = '/trainee/attendance';
   static const String traineeProfile = '/trainee/profile';
   static const String aiAssistant = '/trainee/ai-assistant';
   static const String bookmarks = '/trainee/bookmarks';
@@ -55,6 +57,7 @@ class RouteNames {
   static const String adminFacultyList = '/admin/faculty';
   static const String createFaculty = '/admin/faculty/create';
   static const String adminTraineeList = '/admin/trainees';
+  static const String adminAttendanceList = '/admin/attendance';
   static const String adminCourseList = '/admin/courses';
   static const String categoryList = '/admin/categories';
   static const String createCategory = '/admin/categories/create';

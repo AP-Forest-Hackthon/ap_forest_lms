@@ -51,30 +51,40 @@ class _LoginScreenState extends State<LoginScreen>
       body: FadeTransition(
         opacity: _fadeAnim,
         child: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildHeader(context),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                  child: Column(
-                    children: [
-                      const _WelcomeSubtitle(),
-                      const SizedBox(height: 24),
-                      // Row 1: Admin
-                      const _AdminRoleCard(),
-                      const SizedBox(height: 20),
-                      // Row 2: Faculty
-                      const _FacultyRoleCard(),
-                      const SizedBox(height: 20),
-                      // Row 3: Student
-                      const _StudentRoleCard(),
-                      const SizedBox(height: 32),
-                    ],
-                  ),
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildHeader(context),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                      child: Column(
+                        children: [
+                          const _WelcomeSubtitle(),
+                          const SizedBox(height: 24),
+                          // Row 1: Faculty
+                          const _FacultyRoleCard(),
+                          const SizedBox(height: 20),
+                          // Row 2: Student
+                          const _StudentRoleCard(),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                top: 16,
+                right: 16,
+                child: IconButton(
+                  icon: const Icon(Icons.admin_panel_settings, color: Colors.white, size: 28),
+                  tooltip: 'Admin Login',
+                  onPressed: () => context.push(RouteNames.adminLogin),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -197,155 +207,6 @@ class _WelcomeSubtitle extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ROW 1: ADMIN ROLE CARD
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _AdminRoleCard extends StatefulWidget {
-  const _AdminRoleCard();
-
-  @override
-  State<_AdminRoleCard> createState() => _AdminRoleCardState();
-}
-
-class _AdminRoleCardState extends State<_AdminRoleCard> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController(text: 'apforest@email.com');
-  final _passCtrl = TextEditingController(text: 'apforest123');
-  bool _obscurePassword = true;
-
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loginAdmin() async {
-    if (!_formKey.currentState!.validate()) return;
-    final auth = context.read<AuthProvider>();
-    final success = await auth.signIn(
-      identifier: _emailCtrl.text.trim(),
-      password: _passCtrl.text,
-      expectedRole: UserRole.admin,
-    );
-
-    if (!success && mounted && auth.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage!), backgroundColor: AppColors.error),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFBF360C).withOpacity(0.3), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Row
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFBE9E7),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.admin_panel_settings, color: Color(0xFFBF360C), size: 22),
-                ),
-                const SizedBox(width: 12),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'ADMINISTRATOR',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFFBF360C),
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    Text(
-                      'System Administration & Faculty Approvals',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Email
-            TextFormField(
-              controller: _emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Admin Email',
-                prefixIcon: Icon(Icons.email_outlined),
-                isDense: true,
-              ),
-              validator: (v) => v == null || !v.contains('@') ? 'Enter admin email' : null,
-            ),
-            const SizedBox(height: 10),
-
-            // Password
-            TextFormField(
-              controller: _passCtrl,
-              obscureText: _obscurePassword,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                prefixIcon: const Icon(Icons.lock_outlined),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                ),
-                isDense: true,
-              ),
-              validator: (v) => v == null || v.isEmpty ? 'Enter password' : null,
-            ),
-            const SizedBox(height: 16),
-
-            // Submit Button
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: auth.isLoading ? null : _loginAdmin,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBF360C),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: auth.isLoading
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Login as Admin', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ROW 2: FACULTY / TEACHER ROLE CARD
@@ -499,6 +360,7 @@ class _FacultyRoleCardState extends State<_FacultyRoleCard> {
             Center(
               child: Wrap(
                 alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text("Don't have a faculty account?", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   TextButton(
@@ -597,7 +459,7 @@ class _StudentRoleCardState extends State<_StudentRoleCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'STUDENT / TRAINEE',
+                      'OFFICER TRAINEE',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
@@ -658,7 +520,7 @@ class _StudentRoleCardState extends State<_StudentRoleCard> {
                 ),
                 child: auth.isLoading
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Login as Student', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    : const Text('Login as Officer Trainee', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
               ),
             ),
             const SizedBox(height: 12),
@@ -667,13 +529,14 @@ class _StudentRoleCardState extends State<_StudentRoleCard> {
             Center(
               child: Wrap(
                 alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Text("Don't have a student account?", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  const Text("Don't have a trainee account?", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   TextButton(
                     onPressed: () => context.go(RouteNames.registerStudent),
                     style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6)),
                     child: const Text(
-                      'Create Student Account',
+                      'Create Trainee Account',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
                     ),
                   ),

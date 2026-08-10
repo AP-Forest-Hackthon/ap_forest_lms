@@ -49,11 +49,11 @@ Future<void> main() async {
     ),
   );
 
-  runApp(const ForestAcademyApp());
+  runApp(const ApForestLmsApp());
 }
 
-class ForestAcademyApp extends StatelessWidget {
-  const ForestAcademyApp({super.key});
+class ApForestLmsApp extends StatelessWidget {
+  const ApForestLmsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +87,7 @@ class _AppRouterState extends State<_AppRouter> {
     context.watch<AuthProvider>();
 
     return MaterialApp.router(
-      title: 'Forest Academy E-Center',
+      title: 'AP Forest LMS E-Center',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: _appRouter.router,

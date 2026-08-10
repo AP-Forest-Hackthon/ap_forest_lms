@@ -125,7 +125,7 @@ class TraineeHomeTab extends StatelessWidget {
                     // Upcoming Live Classes (Google Meet / Zoom)
                     const _SectionHeader(title: 'Upcoming Live Classes'),
                     const SizedBox(height: 12),
-                    _StudentLiveClassesSection(liveClassRepo: liveClassRepo),
+                    _TraineeLiveClassesSection(liveClassRepo: liveClassRepo),
                     const SizedBox(height: 24),
 
                     // My Classes & Courses
@@ -186,7 +186,7 @@ class TraineeHomeTab extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              user?.name ?? 'Student',
+                              user?.name ?? 'Trainee',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -198,11 +198,11 @@ class TraineeHomeTab extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(6),
+                                  color: Colors.black.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  'User ID: ${user.studentId}',
+                                  'Trainee ID: ${user.studentId}',
                                   style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
                                 ),
                               ),
@@ -237,11 +237,11 @@ class TraineeHomeTab extends StatelessWidget {
   }
 }
 
-// ── Student Live Classes Section ──────────────────────────────────────────────
+// ── Trainee Live Classes Section ──────────────────────────────────────────────
 
-class _StudentLiveClassesSection extends StatelessWidget {
+class _TraineeLiveClassesSection extends StatelessWidget {
   final LiveClassRepository liveClassRepo;
-  const _StudentLiveClassesSection({required this.liveClassRepo});
+  const _TraineeLiveClassesSection({required this.liveClassRepo});
 
   @override
   Widget build(BuildContext context) {
@@ -561,11 +561,11 @@ class _CourseTile extends StatelessWidget {
 
 class _QuickActionsGrid extends StatelessWidget {
   final _actions = const [
-    (Icons.library_books_outlined, 'Study Notes', RouteNames.library, AppColors.primary),
+    (Icons.library_books_outlined, 'Digital Forestry Library', RouteNames.library, AppColors.primary),
     (Icons.smart_toy_outlined, 'AI Assistant', RouteNames.aiAssistant, Color(0xFF1565C0)),
+    (Icons.location_on_outlined, 'Attendance', RouteNames.traineeAttendance, Color(0xFF2E7D32)),
     (Icons.map_outlined, 'Academy Map', RouteNames.academyMap, Color(0xFF00695C)),
     (Icons.quiz_outlined, 'Quizzes', RouteNames.quizList, Color(0xFFE65100)),
-    (Icons.info_outline, 'Academy Info', RouteNames.academyInfo, Color(0xFF4A148C)),
     (Icons.trending_up, 'Progress', RouteNames.progress, Color(0xFFC62828)),
   ];
 

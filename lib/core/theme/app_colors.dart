@@ -10,18 +10,18 @@ class AppColors {
   AppColors._();
 
   // ── Primary Forest Green Palette ──────────────────────────────────────────
-  static const Color primary = Color(0xFF1B5E20);       // Deep Forest Green
-  static const Color primaryLight = Color(0xFF2E7D32);  // Forest Green
-  static const Color primaryLighter = Color(0xFF388E3C); // Mid Green
-  static const Color primarySurface = Color(0xFFE8F5E9); // Very light green bg
+  static const Color primary = Color(0xFF086928);       // Rich Vibrant Forest Green
+  static const Color primaryLight = Color(0xFF14853B);  // Lighter Green
+  static const Color primaryLighter = Color(0xFF29A855); // Mid Green
+  static const Color primarySurface = Color(0xFFE8F2EA); // Very light green bg
 
-  // ── Accent Gold ───────────────────────────────────────────────────────────
-  static const Color accent = Color(0xFFF9A825);        // Forest Gold
-  static const Color accentLight = Color(0xFFFFF8E1);   // Gold tint bg
-  static const Color accentDark = Color(0xFFE65100);    // Burnt amber (badges)
+  // ── Accent Gold/Yellow ───────────────────────────────────────────────────
+  static const Color accent = Color(0xFFFFCC00);        // Bright Yellow/Gold
+  static const Color accentLight = Color(0xFFFFFBE6);   // Yellow tint bg
+  static const Color accentDark = Color(0xFFE6A800);    // Darker amber
 
   // ── Neutral / Background ──────────────────────────────────────────────────
-  static const Color background = Color(0xFFF5F5F0);    // Warm white/cream
+  static const Color background = Color(0xFFF9F9F9);    // Off-white/cream
   static const Color surface = Color(0xFFFFFFFF);       // Pure white cards
   static const Color surfaceVariant = Color(0xFFF0F4EE); // Light green-grey bg
 
@@ -83,12 +83,12 @@ class AppColors {
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+    colors: [Color(0xFF0A1910), Color(0xFF086928)], // Dark forest to vibrant green
   );
 
   static const LinearGradient cardGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF2E7D32), Color(0xFF388E3C)],
+    colors: [Color(0xFF086928), Color(0xFF14853B)],
   );
 }

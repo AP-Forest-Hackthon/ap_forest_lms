@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // lib/features/auth/register/student_register_screen.dart
-// Self-registration for Student with unique User ID validation.
+// Self-registration for Officer Trainee with unique User ID validation.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
@@ -61,7 +61,7 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Student Registration'),
+        title: const Text('Officer Trainee Registration'),
         backgroundColor: AppColors.primary,
       ),
       body: SafeArea(
@@ -104,11 +104,11 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Student Registration',
+                              'Officer Trainee Registration',
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                             ),
                             Text(
-                              'Create your student account',
+                              'Create your trainee account',
                               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                             ),
                           ],
@@ -121,7 +121,7 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
                     TextFormField(
                       controller: _studentIdCtrl,
                       decoration: const InputDecoration(
-                        labelText: 'User ID (Unique) *',
+                        labelText: 'Trainee ID (Unique) *',
                         hintText: 'e.g. APSFA2026001',
                         prefixIcon: Icon(Icons.badge_outlined),
                       ),
@@ -219,7 +219,7 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
                                 height: 20,
                                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               )
-                            : const Text('Create Student Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                            : const Text('Create Trainee Account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                       ),
                     ),
 

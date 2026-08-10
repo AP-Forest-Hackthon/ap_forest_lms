@@ -1,4 +1,4 @@
-package com.example.ap_forest_lms
+package com.example.apforest
 
 import io.flutter.embedding.android.FlutterActivity
 

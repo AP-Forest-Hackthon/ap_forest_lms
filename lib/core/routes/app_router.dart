@@ -9,6 +9,7 @@ import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../features/auth/splash/splash_screen.dart';
 import '../../features/auth/login/login_screen.dart';
+import '../../features/auth/login/admin_login_screen.dart';
 import '../../features/auth/register/faculty_register_screen.dart';
 import '../../features/auth/register/student_register_screen.dart';
 
@@ -26,6 +27,7 @@ import '../../features/trainee/announcements/announcements_screen.dart';
 import '../../features/trainee/timetable/timetable_screen.dart';
 import '../../features/trainee/academy/academy_info_screen.dart';
 import '../../features/trainee/map/academy_map_screen.dart';
+import '../../features/trainee/attendance/attendance_screen.dart';
 import '../../features/trainee/profile/trainee_profile_screen.dart';
 import '../../features/trainee/ai_assistant/ai_assistant_screen.dart';
 import '../../features/trainee/bookmarks/bookmarks_screen.dart';
@@ -46,6 +48,7 @@ import '../../features/admin/dashboard/admin_dashboard_screen.dart';
 import '../../features/admin/faculty_management/faculty_list_screen.dart';
 import '../../features/admin/faculty_management/create_faculty_screen.dart';
 import '../../features/admin/trainee_management/trainee_list_screen.dart';
+import '../../features/admin/trainee_management/trainee_attendance_list_screen.dart';
 import '../../features/admin/category_management/category_list_screen.dart';
 import '../../features/admin/academy_management/academy_settings_screen.dart';
 import '../../features/admin/analytics/analytics_screen.dart';
@@ -81,6 +84,7 @@ class AppRouter {
     if (authStatus == AuthStatus.unauthenticated) {
       if (location == RouteNames.splash ||
           location == RouteNames.login ||
+          location == RouteNames.adminLogin ||
           location == RouteNames.registerFaculty ||
           location == RouteNames.registerStudent) {
         return null;
@@ -135,6 +139,10 @@ class AppRouter {
       builder: (_, __) => const LoginScreen(),
     ),
     GoRoute(
+      path: RouteNames.adminLogin,
+      builder: (_, __) => const AdminLoginScreen(),
+    ),
+    GoRoute(
       path: RouteNames.registerFaculty,
       builder: (_, __) => const FacultyRegisterScreen(),
     ),
@@ -178,6 +186,7 @@ class AppRouter {
         GoRoute(path: RouteNames.timetable, builder: (_, __) => const TimetableScreen()),
         GoRoute(path: RouteNames.academyInfo, builder: (_, __) => const AcademyInfoScreen()),
         GoRoute(path: RouteNames.academyMap, builder: (_, __) => const AcademyMapScreen()),
+        GoRoute(path: RouteNames.traineeAttendance, builder: (_, __) => const AttendanceScreen()),
         GoRoute(path: RouteNames.traineeProfile, builder: (_, __) => const TraineeProfileScreen()),
         GoRoute(path: RouteNames.aiAssistant, builder: (_, __) => const AiAssistantScreen()),
         GoRoute(path: RouteNames.bookmarks, builder: (_, __) => const BookmarksScreen()),
@@ -220,6 +229,7 @@ class AppRouter {
         GoRoute(path: RouteNames.adminFacultyList, builder: (_, __) => const FacultyListScreen()),
         GoRoute(path: RouteNames.createFaculty, builder: (_, __) => const CreateFacultyScreen()),
         GoRoute(path: RouteNames.adminTraineeList, builder: (_, __) => const TraineeListScreen()),
+        GoRoute(path: RouteNames.adminAttendanceList, builder: (_, __) => const TraineeAttendanceListScreen()),
         GoRoute(path: RouteNames.categoryList, builder: (_, __) => const CategoryListScreen()),
         GoRoute(path: RouteNames.academyManagement, builder: (_, __) => const AcademySettingsScreen()),
         GoRoute(path: RouteNames.analytics, builder: (_, __) => const AnalyticsScreen()),
