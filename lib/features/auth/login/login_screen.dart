@@ -499,7 +499,6 @@ class _FacultyRoleCardState extends State<_FacultyRoleCard> {
             Center(
               child: Wrap(
                 alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAxisAlignment.center,
                 children: [
                   const Text("Don't have a faculty account?", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   TextButton(
@@ -668,7 +667,6 @@ class _StudentRoleCardState extends State<_StudentRoleCard> {
             Center(
               child: Wrap(
                 alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAxisAlignment.center,
                 children: [
                   const Text("Don't have a student account?", style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   TextButton(
